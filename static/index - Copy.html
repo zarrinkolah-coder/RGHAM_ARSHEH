@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>نرم افزار رقم</title>
+  <meta name="description" content="نرم‌افزار رقم؛ سامانه مدیریت فاکتور خرید، تراکنش‌های مالی، کاربران و موجودی انبار" />
+  <meta name="theme-color" content="#1d3b99" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="رقم" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div id="loginScreen" class="login-wrap">
+  <div class="login-shell">
+    <div class="login-brand-panel">
+      <div class="brand"><div class="logo">R</div><div><h1>نرم افزار رقم</h1><p>سامانه حساب و موجودی</p></div></div>
+      <div class="login-brand-copy">
+        <span class="login-eyebrow">ورود امن کاربران</span>
+        <h2>حساب کاربری خود را انتخاب کنید</h2>
+        <p>ابتدا روی کارت نام خود بزنید و سپس کد اختصاصی دریافتی از مدیر را وارد کنید.</p>
+      </div>
+    </div>
+    <div class="login-card login-card-wide">
+      <div id="userSelectStep">
+        <div class="login-section-head"><div><h2>انتخاب کاربر</h2><p>هر کاربر فقط تراکنش‌های مالی متعلق به خودش را مشاهده می‌کند.</p></div><span id="loginUserCount" class="login-count"></span></div>
+        <div id="loginUserCards" class="login-user-grid"></div>
+      </div>
+      <div id="accessCodeStep" class="hidden">
+        <button class="login-back" type="button" onclick="backToUserCards()">→ بازگشت به کاربران</button>
+        <div class="selected-login-user">
+          <div id="selectedLoginAvatar" class="login-user-avatar">ک</div>
+          <div><span id="selectedLoginRole">کاربر</span><h2 id="selectedLoginName">نام کاربر</h2><p id="selectedLoginHint">کد اختصاصی خود را وارد کنید.</p></div>
+        </div>
+        <div class="field"><label>کد ورود اختصاصی</label><input id="accessCodeInput" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="کد ورود" onkeydown="if(event.key==='Enter') verifyProfileCode()" /></div>
+        <button class="btn green login-submit" style="width:100%" onclick="verifyProfileCode()">ورود به برنامه</button>
+        <div class="hint">در حالت آزمایشی کد مدیر ۱ و کد همه کاربران ۲ است. کد اختصاصی ثبت‌شده نیز معتبر باقی می‌ماند.</div><div class="pwa-install-row"><button id="loginInstallButton" type="button" class="btn secondary pwa-install-btn" onclick="installRaghamPwa()">📲 نصب برنامه رقم</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="shell hidden">
+  <div class="topbar">
+    <div class="brand"><div class="logo">R</div><div><h1>نرم افزار رقم</h1><p id="syncStatus">در حال اتصال به سرور</p></div></div>
+    <div class="top-actions">
+      <nav class="top-nav" aria-label="دسترسی اصلی">
+        <button id="nav-dashboard" class="btn secondary active" onclick="showPage('dashboard')">🏠 صفحه اصلی</button>
+        <button id="nav-inventory" class="btn secondary" onclick="showPage('inventory')">📦 انبار کالا</button>
+        <button id="nav-movements" class="btn secondary" onclick="showPage('movements')">↕️ ورود و خروج کالا</button>
+        <button id="nav-users" class="btn secondary hidden" onclick="showPage('users')">👥 مدیریت کاربران</button>
+        <button id="nav-admin-report" class="btn secondary hidden" onclick="showPage('admin-report')">📊 گزارش مالی مدیر</button>
+        <button id="nav-audit" class="btn secondary hidden" onclick="showPage('audit')">🕘 تاریخچه اصلاحات</button>
+      </nav>
+      <div class="top-create-actions" aria-label="ثبت تراکنش جدید">
+        <button id="action-money-in" class="btn green" onclick="openMoneyModal(null,'in')">+ پول گرفتم</button>
+        <button id="action-money-out" class="btn red" onclick="openMoneyModal(null,'out')">+ پول دادم</button>
+        <button id="action-invoice" class="btn" onclick="openInvoiceModal(null)">+ فاکتور جدید</button>
+      </div>
+      <button id="backupJsonBtn" class="btn secondary" onclick="downloadJsonBackup()">💾 ذخیره پشتیبان JSON</button>
+      <button id="restoreJsonBtn" class="btn secondary" onclick="openJsonRestorePicker()">♻️ بازیابی پشتیبان</button>
+      <input id="jsonRestoreFile" type="file" accept=".json,application/json" class="hidden" onchange="restoreJsonBackupFile(this.files && this.files[0]);this.value=''" />
+      <button id="topInstallButton" type="button" class="btn secondary pwa-install-btn" onclick="installRaghamPwa()">📲 نصب برنامه</button>
+      <button class="btn secondary" onclick="logout()">خروج</button>
+    </div>
+  </div>
+  <div class="app-grid">
+
+    <main class="main">
+      <section id="page-dashboard">
+        <div class="user-transaction-head">
+          <div class="section-title"><div><h2 id="homeTransactionsTitle">تراکنش‌های مالی من</h2><div id="homeUserLabel" class="small" style="margin-top:5px"></div></div><div id="homeUserBalance" class="user-opening-balance"></div></div>
+          <div id="homeBalanceSummary" class="home-balance-summary"></div>
+          <div class="toolbar home-transactions-toolbar" style="margin-top:12px">
+            <div class="search"><input id="homeTransactionSearch" oninput="renderHomeTransactions()" placeholder="جستجوی نام، مبلغ، تاریخ یا توضیح..." /></div>
+            <div id="homeMarketerFilterWrap" class="home-filter-field hidden"><label for="homeMarketerFilter">فیلتر بازاریاب</label><select id="homeMarketerFilter" onchange="renderHomeTransactions()"><option value="">همه بازاریاب‌ها</option></select></div>
+            <div class="home-filter-field no-caption"><select id="homeTransactionTypeFilter" aria-label="نوع تراکنش" onchange="renderHomeTransactions()"><option value="">همه تراکنش‌ها</option><option value="in">پول گرفتم</option><option value="out">پول دادم</option><option value="invoice">فاکتور خرید</option></select></div>
+            <button type="button" class="btn secondary report-pdf-btn" onclick="printHomeTransactionsReport()">🧾 گزارش PDF</button>
+          </div>
+        </div>
+        <div id="homeTransactions" class="list"></div>
+      </section>
+      <section id="page-accounts" class="hidden">
+        <div class="section-title"><h2>طرف حساب‌ها</h2><button class="btn" onclick="openContactModal()">+ ایجاد طرف حساب</button></div>
+        <div class="toolbar two"><div class="search"><input id="contactSearch" oninput="renderContacts()" placeholder="جستجوی نام یا شماره..." /></div><select id="contactTypeFilter" onchange="renderContacts()"><option value="">همه نوع‌ها</option><option>مشتری</option><option>تامین‌کننده</option><option>بازاریاب</option><option>شخصی</option></select></div>
+        <div id="contactsList" class="list"></div>
+      </section>
+      <section id="page-contact-detail" class="hidden">
+        <div class="section-title"><h2 id="detailTitle">جزئیات طرف حساب</h2><button class="btn secondary" onclick="showPage('accounts')">بازگشت</button></div>
+        <div class="contact-detail"><div><div class="quick-actions" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:12px"><button class="btn green" onclick="openMoneyModal(selectedContactId,'in')">پول گرفتم</button><button class="btn red" onclick="openMoneyModal(selectedContactId,'out')">پول دادم</button><button class="btn" onclick="openInvoiceModal(selectedContactId)">فاکتور جدید</button></div><div id="contactTransactions" class="list"></div></div><div class="panel"><div id="contactDetailBox"></div></div></div>
+      </section>
+      <section id="page-transactions" class="hidden">
+        <div class="section-title"><h2>تراکنش‌های مالی</h2><div><button class="btn green small" onclick="openMoneyModal(null,'in')">+ پول گرفتم</button> <button class="btn red small" onclick="openMoneyModal(null,'out')">+ پول دادم</button> <button class="btn small" onclick="openInvoiceModal(null)">+ فاکتور خرید</button></div></div>
+        <div class="toolbar two"><div class="search"><input id="transactionSearch" oninput="renderTransactions()" placeholder="جستجوی نام، مبلغ یا توضیح..." /></div><select id="transactionTypeFilter" onchange="renderTransactions()"><option value="">همه تراکنش‌ها</option><option value="in">پول گرفتم</option><option value="out">پول دادم</option></select></div>
+        <div id="transactionsList" class="list"></div>
+      </section>
+      <section id="page-inventory" class="hidden">
+        <div class="section-title"><div><h2>انبار کالا</h2><div class="small">نمایش دسته، نام کالا و آخرین قیمت خرید استخراج‌شده از فایل JSON · ۱۳۹ کالا</div></div><div><button class="btn" onclick="openItemModal()">+ افزودن کالا</button> <button class="btn secondary" onclick="fakeSync()">بروزرسانی از سرور</button></div></div>
+        <div class="toolbar"><div class="search"><input id="searchInput" oninput="renderInventory()" placeholder="جستجوی دسته، نام یا کد کالا..." /></div><select id="categoryFilter" onchange="renderInventory()"><option value="">همه دسته‌ها</option></select><select id="stockFilter" onchange="renderInventory()"><option value="">همه وضعیت‌ها</option><option value="low">کم‌موجودی</option><option value="zero">ناموجود</option><option value="ok">موجود</option></select></div>
+        <div id="inventoryCards" class="cards"></div>
+      </section>
+      <section id="page-movements" class="hidden">
+        <div class="section-title"><h2>ورود و خروج کالا</h2><div><button class="btn green small" onclick="openStockMovementModal('in')">+ ثبت ورود کالا</button> <button class="btn red small" onclick="openStockMovementModal('out')">+ ثبت خروج کالا</button></div></div>
+        <div id="movementSummary" class="movement-summary"></div>
+        <div class="toolbar two"><div class="search"><input id="movementSearch" oninput="renderMovements()" placeholder="جستجوی کالا، کد، تاریخ یا توضیح..." /></div><select id="movementTypeFilter" onchange="renderMovements()"><option value="">همه عملیات‌ها</option><option value="in">ورود کالا</option><option value="out">خروج کالا</option></select></div>
+        <div id="movementsList" class="list"></div>
+      </section>
+      <section id="page-admin-report" class="hidden">
+        <div class="section-title"><div><h2>گزارش مالی همه بازاریاب‌ها</h2><div class="small" style="margin-top:5px">نمایش کلیه فاکتورها، دریافت‌ها و پرداخت‌ها با فیلتر نام بازاریاب و نوع عملیات</div></div></div>
+        <div id="adminFinancialSummary" class="user-management-summary admin-financial-summary"></div>
+        <div class="admin-report-toolbar">
+          <div class="admin-report-filter"><label for="adminFinancialSearch">جستجو</label><div class="search"><input id="adminFinancialSearch" oninput="renderAdminFinancialReport()" placeholder="جستجوی فاکتور، طرف حساب، مبلغ، تاریخ یا توضیح..." /></div></div>
+          <div class="admin-report-filter"><label for="adminMarketerFilter">فیلتر بازاریاب</label><select id="adminMarketerFilter" onchange="renderAdminFinancialReport()"><option value="">همه بازاریاب‌ها</option></select></div>
+          <div class="admin-report-filter"><label for="adminFinancialTypeFilter">دریافت و پرداخت</label><select id="adminFinancialTypeFilter" onchange="renderAdminFinancialReport()"><option value="">همه فاکتورها و تراکنش‌ها</option><option value="invoice">فاکتورها</option><option value="in">پول گرفتم / دریافت</option><option value="out">پول دادم / پرداخت</option></select></div>
+          <button type="button" class="btn secondary report-pdf-btn" onclick="printAdminFinancialReport()">🧾 گزارش PDF</button>
+        </div>
+        <div id="adminFinancialList" class="list"></div>
+      </section>
+      <section id="page-audit" class="hidden">
+        <div class="section-title"><div><h2>تاریخچه اصلاحات و حذف‌ها</h2><div class="small" style="margin-top:5px">نگهداری سابقه تأیید، ویرایش و حذف تراکنش‌ها و فاکتورها برای مدیر</div></div></div>
+        <div id="auditHistorySummary" class="user-management-summary audit-summary"></div>
+        <div class="toolbar audit-toolbar">
+          <div class="search"><input id="auditHistorySearch" oninput="renderAuditHistory()" placeholder="جستجوی کاربر، فاکتور، مبلغ یا تاریخ..." /></div>
+          <select id="auditHistoryAction" aria-label="نوع تغییر" onchange="renderAuditHistory()"><option value="">همه تغییرات</option><option value="edit">ویرایش</option><option value="delete">حذف</option></select>
+        </div>
+        <div id="auditHistoryList" class="audit-history-list"></div>
+      </section>
+      <section id="page-users" class="hidden">
+        <div class="section-title"><div><h2>مدیریت کاربران</h2><div class="small" style="margin-top:5px">ایجاد کاربر، تعیین مانده اولیه، کد پنج‌رقمی و سطح دسترسی</div></div><button class="btn" onclick="openApplicationUserModal()">+ ایجاد کاربر جدید</button></div>
+        <div id="userManagementSummary" class="user-management-summary"></div>
+        <div id="usersManagementList" class="user-management-grid"></div>
+      </section>
+      <section id="page-import" class="hidden"><div class="section-title"><div><h2>پشتیبان‌گیری و بازیابی JSON</h2><span class="small">همه کالاها، کاربران، فاکتورها، تراکنش‌ها، گردش انبار و تاریخچه اصلاحات در فایل پشتیبان ذخیره می‌شوند.</span></div><div class="actions" style="margin-top:0"><button class="btn secondary" onclick="downloadJsonBackup()">💾 ذخیره پشتیبان</button><button class="btn" onclick="openJsonRestorePicker()">♻️ انتخاب فایل و بازیابی</button></div></div><textarea id="jsonInput" class="json-area" placeholder="برای بازیابی دستی، محتوای فایل JSON را در این بخش قرار دهید."></textarea><div class="actions"><button class="btn secondary" onclick="fillSampleJson()">نمایش داده فعلی</button><button class="btn" onclick="importJson()">بازیابی از متن JSON</button></div></section>
+      <section id="page-settings" class="hidden"><div class="panel"><h2 style="margin-top:0">تنظیمات اتصال به API</h2><p class="small">بعد از مشخص شدن API واقعی رقم یا سرور خودتان، آدرس‌ها در این بخش قابل تنظیم هستند.</p><div class="field"><label>Base URL</label><input id="baseUrl" dir="ltr" placeholder="https://api.example.com" /></div><div class="field"><label>مسیر ورود</label><input id="loginPath" dir="ltr" value="/auth/login" /></div><div class="field"><label>مسیر موجودی</label><input id="inventoryPath" dir="ltr" value="/inventory/items" /></div><button class="btn" onclick="saveSettings()">ذخیره تنظیمات</button></div></section>
+    </main>
+  </div>
+</div>
+<div id="modalHost"></div><div id="toast" class="toast hidden"></div>
+<div id="networkBanner" class="network-banner" role="status">اتصال اینترنت یا سرور قطع است؛ اطلاعات فعلی از حافظه دستگاه نمایش داده می‌شود.</div>
+<div id="pwaUpdateBanner" class="pwa-update-banner" role="status"><span>نسخه جدید برنامه آماده است.</span><button type="button" onclick="applyPwaUpdate()">بروزرسانی</button></div>
+<noscript><div class="empty" style="margin:20px">برای اجرای نرم افزار رقم، JavaScript مرورگر باید فعال باشد.</div></noscript>
+<script src="./app.js" defer></script>
+</body>
+</html>
