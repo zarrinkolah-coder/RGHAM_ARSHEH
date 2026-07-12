@@ -1,0 +1,18 @@
+[Unit]
+Description=Ragham Server
+After=network.target
+
+[Service]
+Type=simple
+User=ragham
+Group=ragham
+WorkingDirectory=/opt/ragham
+Environment=RAGHAM_HOST=127.0.0.1
+Environment=RAGHAM_PORT=8080
+Environment=RAGHAM_DATA_DIR=/var/lib/ragham
+ExecStart=/usr/bin/python3 /opt/ragham/server.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
