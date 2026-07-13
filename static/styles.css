@@ -181,3 +181,18 @@ body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bot
 .pwa-update-banner.show{display:flex}.pwa-update-banner button{background:#fff;color:#132861;padding:7px 10px;border-radius:10px;font-weight:900}
 @media(display-mode:standalone){.pwa-install-btn{display:none!important}}
 @media(max-width:580px){.top-actions>.pwa-install-btn{width:100%}.network-banner,.pwa-update-banner{right:10px;left:10px;max-width:none}}
+
+/* Server connection settings v2.2 */
+.server-settings-panel{max-width:760px;margin:0 auto}
+.server-connection-result{margin-bottom:16px;padding:13px 15px;border-radius:16px;font-size:13px;font-weight:800;line-height:1.9;border:1px solid var(--line);background:#f7f9ff;color:var(--ink)}
+.server-connection-result.ok{background:#eaf8ef;border-color:#b9e3c7;color:#146c3a}
+.server-connection-result.warn{background:#fff7e8;border-color:#efd9a5;color:#7a5200}
+.server-connection-result.local{background:#eef4ff;border-color:#cddcff;color:#23439c}
+.server-enable-option{display:flex;align-items:flex-start;gap:11px;padding:13px 14px;margin-bottom:14px;border-radius:16px;background:#f8faff;border:1px solid var(--line);cursor:pointer}
+.server-enable-option input{width:20px;height:20px;margin-top:2px;flex:0 0 auto}
+.server-enable-option span{display:flex;flex-direction:column;gap:4px}
+.server-enable-option small{color:var(--muted);line-height:1.8}
+.server-settings-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:15px}
+.server-help-box{margin-top:16px;padding:12px 14px;border-radius:15px;background:#fff8e8;border:1px dashed #e8ca82;color:#6d4b00;font-size:12px;line-height:1.9}
+.server-help-box code,.server-settings-panel code{direction:ltr;display:inline-block;background:rgba(255,255,255,.72);padding:1px 5px;border-radius:6px}
+@media(max-width:580px){.server-settings-actions .btn{width:100%}}

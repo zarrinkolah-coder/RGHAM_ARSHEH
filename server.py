@@ -28,6 +28,12 @@ MAX_BODY_BYTES = int(os.environ.get("RAGHAM_MAX_BODY", str(25 * 1024 * 1024)))
 BACKUP_LIMIT = int(os.environ.get("RAGHAM_BACKUP_LIMIT", "100"))
 BASIC_USER = os.environ.get("RAGHAM_BASIC_USER", "").strip()
 BASIC_PASSWORD = os.environ.get("RAGHAM_BASIC_PASSWORD", "")
+API_TOKEN = os.environ.get("RAGHAM_API_TOKEN", "").strip()
+CORS_ORIGINS = {
+    value.strip().rstrip("/")
+    for value in os.environ.get("RAGHAM_CORS_ORIGINS", "").split(",")
+    if value.strip()
+}
 
 STATE_COLLECTIONS = (
     "items",
@@ -199,7 +205,7 @@ def replace_state(value: Any) -> tuple[int, dict[str, Any], str]:
 
 
 class RaghamHandler(SimpleHTTPRequestHandler):
-    server_version = "RaghamServer/2.0-PWA"
+    server_version = "RaghamServer/2.2-PWA"
     extensions_map = {
         **SimpleHTTPRequestHandler.extensions_map,
         ".webmanifest": "application/manifest+json",
@@ -214,20 +220,39 @@ class RaghamHandler(SimpleHTTPRequestHandler):
     def log_message(self, fmt: str, *args: Any) -> None:
         print(f"[{utc_now()}] {self.client_address[0]} - {fmt % args}")
 
+    def allowed_cors_origin(self) -> str | None:
+        origin = self.headers.get("Origin", "").strip().rstrip("/")
+        if not origin:
+            return None
+        if "*" in CORS_ORIGINS:
+            return "*"
+        if origin in CORS_ORIGINS:
+            return origin
+        return None
+
     def end_headers(self) -> None:
         path = urlparse(self.path).path
+        is_api = path.startswith("/api/")
+        allowed_origin = self.allowed_cors_origin() if is_api else None
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "SAMEORIGIN")
         self.send_header("Referrer-Policy", "strict-origin-when-cross-origin")
         self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
-        self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Cross-Origin-Resource-Policy", "cross-origin" if is_api else "same-origin")
+        if allowed_origin:
+            self.send_header("Access-Control-Allow-Origin", allowed_origin)
+            self.send_header("Access-Control-Allow-Methods", "GET, PATCH, PUT, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Ragham-Token")
+            self.send_header("Access-Control-Max-Age", "86400")
+            if allowed_origin != "*":
+                self.send_header("Vary", "Origin")
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
-            "img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; object-src 'none'; "
+            "img-src 'self' data: blob:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; "
             "base-uri 'self'; frame-ancestors 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self' blob:",
         )
-        if path.startswith("/api/"):
+        if is_api:
             self.send_header("Cache-Control", "no-store")
         elif path in ("/", "/index.html", "/service-worker.js", "/manifest.webmanifest"):
             self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -236,6 +261,15 @@ class RaghamHandler(SimpleHTTPRequestHandler):
         if path == "/service-worker.js":
             self.send_header("Service-Worker-Allowed", "/")
         super().end_headers()
+
+    def require_api_auth(self) -> bool:
+        if not API_TOKEN:
+            return True
+        supplied = self.headers.get("X-Ragham-Token", "")
+        if hmac.compare_digest(supplied, API_TOKEN):
+            return True
+        self.send_json(HTTPStatus.UNAUTHORIZED, {"error": "invalid_api_token"})
+        return False
 
     def require_site_auth(self) -> bool:
         if not BASIC_USER:
@@ -276,16 +310,35 @@ class RaghamHandler(SimpleHTTPRequestHandler):
         raw = self.rfile.read(length)
         return json.loads(raw.decode("utf-8"))
 
-    def do_GET(self) -> None:  # noqa: N802
-        if not self.require_site_auth():
-            return
+    def authorize_request(self, path: str) -> bool:
+        if path.startswith("/api/"):
+            return self.require_api_auth()
+        return self.require_site_auth()
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
+        if not parsed.path.startswith("/api/"):
+            self.send_response(HTTPStatus.NO_CONTENT)
+            self.end_headers()
+            return
+        origin = self.headers.get("Origin", "").strip().rstrip("/")
+        if origin and not self.allowed_cors_origin():
+            self.send_json(HTTPStatus.FORBIDDEN, {"error": "cors_origin_not_allowed"})
+            return
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
+    def do_GET(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        if not self.authorize_request(parsed.path):
+            return
         if parsed.path == "/api/health":
             version, _, updated_at = read_state()
-            self.send_json(HTTPStatus.OK, {"ok": True, "version": version, "updated_at": updated_at, "app": "2.1.0-pwa"})
+            self.send_json(HTTPStatus.OK, {"ok": True, "version": version, "updated_at": updated_at, "app": "2.2.0-pwa"})
             return
         if parsed.path == "/api/version":
-            self.send_json(HTTPStatus.OK, {"name": "Ragham", "version": "2.1.0", "pwa": True})
+            self.send_json(HTTPStatus.OK, {"name": "Ragham", "version": "2.2.0", "pwa": True})
             return
         if parsed.path == "/api/state":
             version, state, updated_at = read_state()
@@ -296,9 +349,9 @@ class RaghamHandler(SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_PATCH(self) -> None:  # noqa: N802
-        if not self.require_site_auth():
-            return
         parsed = urlparse(self.path)
+        if not self.authorize_request(parsed.path):
+            return
         if parsed.path != "/api/state":
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
@@ -323,9 +376,9 @@ class RaghamHandler(SimpleHTTPRequestHandler):
             self.send_json(HTTPStatus.INTERNAL_SERVER_ERROR, {"error": "server_error"})
 
     def do_PUT(self) -> None:  # noqa: N802
-        if not self.require_site_auth():
-            return
         parsed = urlparse(self.path)
+        if not self.authorize_request(parsed.path):
+            return
         if parsed.path != "/api/state":
             self.send_json(HTTPStatus.NOT_FOUND, {"error": "not_found"})
             return
@@ -345,6 +398,14 @@ class RaghamHandler(SimpleHTTPRequestHandler):
 
 def main() -> None:
     init_db()
+    if CORS_ORIGINS:
+        print("CORS origins:", ", ".join(sorted(CORS_ORIGINS)))
+    else:
+        print("CORS is disabled for external PWA origins. Set RAGHAM_CORS_ORIGINS when using GitHub Pages.")
+    if API_TOKEN:
+        print("API token protection: enabled")
+    else:
+        print("WARNING: API token protection is disabled. Set RAGHAM_API_TOKEN before public deployment.")
     httpd = ThreadingHTTPServer((HOST, PORT), RaghamHandler)
     httpd.daemon_threads = True
 

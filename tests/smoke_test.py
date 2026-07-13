@@ -59,6 +59,23 @@ def validate_pwa_files() -> None:
     assert "serviceWorker.register" in app_js
     assert "beforeinstallprompt" in app_js
     assert "SERVER_PENDING_KEY" in app_js
+    assert "SERVER_CONNECTION_KEY" in app_js
+    assert "serverBaseUrl" in app_js
+    assert "X-Ragham-Token" in app_js
+
+    root_required = [
+        ROOT / "index.html",
+        ROOT / "manifest.webmanifest",
+        ROOT / "service-worker.js",
+        ROOT / "app.js",
+        ROOT / "styles.css",
+    ]
+    root_missing = [str(path.relative_to(ROOT)) for path in root_required if not path.is_file()]
+    assert not root_missing, f"missing GitHub Pages root files: {root_missing}"
+    root_html = (ROOT / "index.html").read_text(encoding="utf-8")
+    assert 'id="nav-settings"' in root_html
+    assert 'id="serverBaseUrl"' in root_html
+    assert "ragham-pwa-v2.2.0" in (ROOT / "service-worker.js").read_text(encoding="utf-8")
 
 
 def validate_database() -> None:

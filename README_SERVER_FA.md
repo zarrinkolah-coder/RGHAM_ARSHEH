@@ -116,3 +116,18 @@ RAGHAM_BASIC_USER=ragham RAGHAM_BASIC_PASSWORD='CHANGE-ME' ./start_linux.sh
 این بسته اکنون دارای Web Manifest، Service Worker، آیکون‌های نصب، حالت آفلاین، اعلان بروزرسانی و فایل‌های لازم برای بررسی در PWABuilder است. برای مراحل GitHub و PWABuilder فایل `GITHUB_PWABUILDER_GUIDE_FA.md` را مطالعه کنید.
 
 برای نصب PWA و ساخت بسته Android باید برنامه روی دامنه HTTPS در دسترس باشد. GitHub Pages برای اجرای Python و SQLite این پروژه کافی نیست؛ مخزن GitHub باید روی میزبان Python یا Docker مستقر شود.
+
+## اتصال نسخه نصب‌شده GitHub Pages به این سرور — نسخه ۲٫۲
+
+اگر PWA از GitHub Pages نصب شده باشد، آدرس سایت GitHub فقط رابط برنامه را ارائه می‌کند و داده‌های SQLite باید از یک سرور HTTPS جداگانه دریافت شوند.
+
+روی سرور این متغیرها را تنظیم کنید:
+
+```bash
+RAGHAM_CORS_ORIGINS=https://zarrinkolah-coder.github.io
+RAGHAM_API_TOKEN='یک-کلید-طولانی-و-محرمانه'
+```
+
+سپس در برنامه گوشی با حساب مدیر وارد بخش **اتصال سرور** شوید، آدرس HTTPS سرور و همان کلید را ثبت کنید و **ذخیره و اتصال** را بزنید.
+
+راهنمای کامل در فایل `SERVER_SYNC_PHONE_GUIDE_FA.md` قرار دارد.

@@ -47,14 +47,21 @@ jobs:
           RAGHAM_HOST: 127.0.0.1
           RAGHAM_PORT: 8765
           RAGHAM_DATA_DIR: ${{ runner.temp }}/ragham-data
+          RAGHAM_API_TOKEN: test-ragham-token
+          RAGHAM_CORS_ORIGINS: https://zarrinkolah-coder.github.io
         run: |
           python server.py > server-test.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
           for i in {1..20}; do
-            curl -fsS http://127.0.0.1:8765/api/health && break
+            curl -fsS -H 'X-Ragham-Token: test-ragham-token' http://127.0.0.1:8765/api/health && break
             sleep 0.5
           done
+          curl -fsS -H 'X-Ragham-Token: test-ragham-token' http://127.0.0.1:8765/api/state > /dev/null
+          curl -fsSI -X OPTIONS \
+            -H 'Origin: https://zarrinkolah-coder.github.io' \
+            -H 'Access-Control-Request-Method: GET' \
+            http://127.0.0.1:8765/api/state | grep -i 'access-control-allow-origin: https://zarrinkolah-coder.github.io'
           curl -fsS http://127.0.0.1:8765/ > /dev/null
           curl -fsS http://127.0.0.1:8765/manifest.webmanifest > /dev/null
           curl -fsS http://127.0.0.1:8765/service-worker.js > /dev/null

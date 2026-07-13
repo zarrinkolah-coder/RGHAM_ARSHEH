@@ -57,6 +57,7 @@
         <button id="nav-users" class="btn secondary hidden" onclick="showPage('users')">👥 مدیریت کاربران</button>
         <button id="nav-admin-report" class="btn secondary hidden" onclick="showPage('admin-report')">📊 گزارش مالی مدیر</button>
         <button id="nav-audit" class="btn secondary hidden" onclick="showPage('audit')">🕘 تاریخچه اصلاحات</button>
+        <button id="nav-settings" class="btn secondary hidden" onclick="showPage('settings')">🔄 اتصال سرور</button>
       </nav>
       <div class="top-create-actions" aria-label="ثبت تراکنش جدید">
         <button id="action-money-in" class="btn green" onclick="openMoneyModal(null,'in')">+ پول گرفتم</button>
@@ -137,7 +138,17 @@
         <div id="usersManagementList" class="user-management-grid"></div>
       </section>
       <section id="page-import" class="hidden"><div class="section-title"><div><h2>پشتیبان‌گیری و بازیابی JSON</h2><span class="small">همه کالاها، کاربران، فاکتورها، تراکنش‌ها، گردش انبار و تاریخچه اصلاحات در فایل پشتیبان ذخیره می‌شوند.</span></div><div class="actions" style="margin-top:0"><button class="btn secondary" onclick="downloadJsonBackup()">💾 ذخیره پشتیبان</button><button class="btn" onclick="openJsonRestorePicker()">♻️ انتخاب فایل و بازیابی</button></div></div><textarea id="jsonInput" class="json-area" placeholder="برای بازیابی دستی، محتوای فایل JSON را در این بخش قرار دهید."></textarea><div class="actions"><button class="btn secondary" onclick="fillSampleJson()">نمایش داده فعلی</button><button class="btn" onclick="importJson()">بازیابی از متن JSON</button></div></section>
-      <section id="page-settings" class="hidden"><div class="panel"><h2 style="margin-top:0">تنظیمات اتصال به API</h2><p class="small">بعد از مشخص شدن API واقعی رقم یا سرور خودتان، آدرس‌ها در این بخش قابل تنظیم هستند.</p><div class="field"><label>Base URL</label><input id="baseUrl" dir="ltr" placeholder="https://api.example.com" /></div><div class="field"><label>مسیر ورود</label><input id="loginPath" dir="ltr" value="/auth/login" /></div><div class="field"><label>مسیر موجودی</label><input id="inventoryPath" dir="ltr" value="/inventory/items" /></div><button class="btn" onclick="saveSettings()">ذخیره تنظیمات</button></div></section>
+      <section id="page-settings" class="hidden">
+        <div class="section-title"><div><h2>اتصال و همگام‌سازی سرور</h2><div class="small" style="margin-top:5px">این تنظیم فقط در اختیار مدیر است و روی همین گوشی ذخیره می‌شود.</div></div></div>
+        <div class="panel server-settings-panel">
+          <div id="serverConnectionResult" class="server-connection-result local">📱 حالت محلی فعال است؛ اطلاعات فقط روی همین دستگاه ذخیره می‌شود.</div>
+          <label class="server-enable-option"><input id="serverSyncEnabled" type="checkbox" /><span><b>فعال‌کردن اتصال به سرور</b><small>پس از فعال‌سازی، تراکنش‌ها و فاکتورها از پایگاه داده مرکزی دریافت و روی آن ذخیره می‌شوند.</small></span></label>
+          <div class="field"><label>آدرس اصلی سرور *</label><input id="serverBaseUrl" dir="ltr" inputmode="url" autocomplete="url" placeholder="https://your-ragham-server.example.com" /><div class="small">فقط آدرس اصلی را وارد کنید؛ عبارت <code>/api/state</code> را ننویسید.</div></div>
+          <div class="field"><label>کلید اتصال سرور</label><input id="serverApiToken" type="password" dir="ltr" autocomplete="off" placeholder="کلید تعریف‌شده در RAGHAM_API_TOKEN" /><div class="small">این کلید داخل مخزن GitHub قرار نمی‌گیرد و فقط در حافظه همین دستگاه نگهداری می‌شود.</div></div>
+          <div class="server-settings-actions"><button class="btn" onclick="saveSettings()">ذخیره و اتصال</button><button class="btn secondary" onclick="fakeSync()">دریافت مجدد اطلاعات</button><button class="btn soft-danger" onclick="disableServerConnection()">استفاده فقط از حافظه گوشی</button></div>
+          <div class="server-help-box"><b>نکته:</b> آدرس GitHub Pages سرور نیست. برای نمایش اطلاعات مشترک، فایل <code>server.py</code> باید روی یک سرویس HTTPS مانند سرور شخصی یا میزبان Python/Docker اجرا شود.</div>
+        </div>
+      </section>
     </main>
   </div>
 </div>
