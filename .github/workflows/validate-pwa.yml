@@ -1,0 +1,62 @@
+name: Validate Ragham PWA
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check Python syntax
+        run: python -m py_compile server.py backup_db.py import_json.py tests/smoke_test.py
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check static/app.js
+          node --check static/service-worker.js
+
+      - name: Validate Web App Manifest
+        run: python -m json.tool static/manifest.webmanifest > /dev/null
+
+      - name: Run smoke tests
+        run: python tests/smoke_test.py
+
+      - name: Start server and verify PWA endpoints
+        env:
+          RAGHAM_HOST: 127.0.0.1
+          RAGHAM_PORT: 8765
+          RAGHAM_DATA_DIR: ${{ runner.temp }}/ragham-data
+        run: |
+          python server.py > server-test.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:8765/api/health && break
+            sleep 0.5
+          done
+          curl -fsS http://127.0.0.1:8765/ > /dev/null
+          curl -fsS http://127.0.0.1:8765/manifest.webmanifest > /dev/null
+          curl -fsS http://127.0.0.1:8765/service-worker.js > /dev/null
+          curl -fsSI http://127.0.0.1:8765/manifest.webmanifest | grep -i 'application/manifest+json'
+          curl -fsSI http://127.0.0.1:8765/service-worker.js | grep -i 'service-worker-allowed'

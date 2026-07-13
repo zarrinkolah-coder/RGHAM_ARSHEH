@@ -282,10 +282,10 @@ class RaghamHandler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/health":
             version, _, updated_at = read_state()
-            self.send_json(HTTPStatus.OK, {"ok": True, "version": version, "updated_at": updated_at, "app": "2.0.0-pwa"})
+            self.send_json(HTTPStatus.OK, {"ok": True, "version": version, "updated_at": updated_at, "app": "2.1.0-pwa"})
             return
         if parsed.path == "/api/version":
-            self.send_json(HTTPStatus.OK, {"name": "Ragham", "version": "2.0.0", "pwa": True})
+            self.send_json(HTTPStatus.OK, {"name": "Ragham", "version": "2.1.0", "pwa": True})
             return
         if parsed.path == "/api/state":
             version, state, updated_at = read_state()
