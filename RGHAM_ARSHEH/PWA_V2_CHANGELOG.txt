@@ -1,0 +1,10 @@
+Ragham PWA 2.0.0
+- GitHub-ready repository structure
+- PWABuilder-compatible manifest and service worker
+- install and update UX
+- offline shell and pending-change persistence
+- icons, maskable icons, screenshots
+- security/cache/MIME header improvements
+- SQLite restore backup-limit fix
+- GitHub Actions validation and smoke tests
+- assetlinks.json deployment directory and Persian guides

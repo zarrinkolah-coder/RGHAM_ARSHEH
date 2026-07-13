@@ -1,0 +1,79 @@
+{
+  "id": "./",
+  "name": "نرم افزار رقم",
+  "short_name": "رقم",
+  "description": "سامانه مدیریت فاکتور خرید، تراکنش‌های مالی، کاربران و موجودی انبار",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f4f6fb",
+  "theme_color": "#1d3b99",
+  "categories": ["business", "finance", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshots/ragham-mobile.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "صفحه ورود نرم افزار رقم در تلفن همراه"
+    },
+    {
+      "src": "./screenshots/ragham-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "صفحه ورود نرم افزار رقم در رایانه"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "صفحه اصلی",
+      "short_name": "خانه",
+      "url": "./?source=shortcut&page=dashboard",
+      "icons": [{"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]
+    },
+    {
+      "name": "انبار کالا",
+      "short_name": "انبار",
+      "url": "./?source=shortcut&page=inventory",
+      "icons": [{"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]
+    },
+    {
+      "name": "گزارش مالی مدیر",
+      "short_name": "گزارش",
+      "url": "./?source=shortcut&page=admin-report",
+      "icons": [{"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png"}]
+    }
+  ]
+}

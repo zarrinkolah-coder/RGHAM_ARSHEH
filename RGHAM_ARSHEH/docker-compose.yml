@@ -1,0 +1,15 @@
+services:
+  ragham:
+    build: .
+    container_name: ragham-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ragham_data:/app/data
+    environment:
+      RAGHAM_HOST: 0.0.0.0
+      RAGHAM_PORT: 8080
+      RAGHAM_BACKUP_LIMIT: 100
+volumes:
+  ragham_data:

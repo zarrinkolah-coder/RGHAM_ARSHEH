@@ -1,0 +1,32 @@
+# Runtime data and backups
+data/*
+!data/.gitkeep
+backups/*
+!backups/.gitkeep
+*.sqlite3
+*.sqlite3-*
+*.db
+*.json.bak
+
+# Secrets and local settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.keystore
+
+# Python / editors / OS
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary build output
+*.log
+.tmp/
+dist/
+build/
